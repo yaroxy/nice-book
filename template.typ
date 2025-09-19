@@ -96,6 +96,25 @@
   }
 }
 
+#let block-color = (
+  important: (
+    title: rgb("#01bebb"),
+    body: rgb("#e5f8f8")
+  ),
+  summary: (
+    title: rgb("#c357ee"),
+    body: rgb("#ebdef0")
+  ),
+  question: (
+    title: rgb("#ee861f"),
+    body: rgb("#fdf1e5")
+  ),
+  error: (
+    title: rgb("#e93147"),
+    body: rgb("#fdeaec")
+  )
+)
+
 
 /**
  * numbly
@@ -246,7 +265,84 @@
   it,
 )
 
+// block
+#let nice-block-api(
+  kind: "regular",
+  title: none,
+  it
+) = {
+  block(
+    fill: block-color.at(kind).body,
+    inset: 1em,
+    radius: 4pt,
+    width: 100%,
+    breakable: true
+  )[
+    #set par(
+      first-line-indent: 0em
+    )
 
+    #if title != none{
+      smallcaps[#text(
+        fill: block-color.at(kind).title,
+        size: font-size.SiHao
+      )[#title]]
+    }else{
+      smallcaps[#text(
+        fill: block-color.at(kind).title,
+        size: font-size.SiHao
+      )[#kind]]
+    }
+
+    #set par(
+      first-line-indent: (
+        amount: 1em,
+        all: true,
+      ),
+    )
+    
+    #it
+  ]
+}
+
+#let important(
+  title,
+  it
+) = nice-block-api(
+  kind: "important",
+  title: if title == [] {none} else {title},
+  it
+)
+
+#let summary(
+  title,
+  it
+) = nice-block-api(
+  kind: "summary",
+  title: if title == [] {none} else {title},
+  it
+)
+
+#let question(
+  title,
+  it
+) = nice-block-api(
+  kind: "question",
+  title: if title == [] {none} else {title},
+  it
+)
+
+#let error(
+  title,
+  it
+) = nice-block-api(
+  kind: "error",
+  title: if title == [] {none} else {title},
+  it
+)
+
+
+// book
 #let nice-cover(
   title: [],
   subtitle: [],
@@ -314,6 +410,15 @@
 }
 
 
+// #let is-counter-zero(kind) = context {
+//   let counter-num = counter(kind).final().last()
+
+//   if counter-num >= 1 {
+//     return false
+//   }else{
+//     return true
+//   }
+// }
 #let nice-outline(
   con-depth: 2,
   color-theme: "blue"
@@ -325,6 +430,7 @@
   show outline.entry.where(level: 1): it => {
     set block(above: 1.2em)
     strong(it)
+    // it
   }
   set outline.entry(fill: repeat(" . "))
 
@@ -343,32 +449,36 @@
   )
   pagebreak(weak: true)
 
+  // if is-counter-zero([#figure.where(kind: image)]) == false {
+    align(center)[
+      #heading(
+        numbering: none,
+        bookmarked: true,
+        outlined: false
+      )[List of Figures]
+    ]
+    outline(
+      title: none,
+      target: figure.where(kind: image)
+    )
+    pagebreak(weak: true)
+  // }
 
-  align(center)[
-    #heading(
-      numbering: none,
-      bookmarked: true,
-      outlined: false
-    )[List of Image]
-  ]
-  outline(
-    title: none,
-    target: figure.where(kind: image)
-  )
-  pagebreak(weak: true)
+  // if is-counter-zero[#figure.where(kind: table)] == false {
+    align(center)[
+      #heading(
+        numbering: none,
+        bookmarked: true,
+        outlined: false
+      )[List of Tables]
+    ]
+    outline(
+      title: none,
+      target: figure.where(kind: table)
+    )
+    pagebreak(weak: true)
+  // }
 
-  align(center)[
-    #heading(
-      numbering: none,
-      bookmarked: true,
-      outlined: false
-    )[List of Table]
-  ]
-  outline(
-    title: none,
-    target: figure.where(kind: table)
-  )
-  pagebreak(weak: true)
 }
 
 
@@ -379,21 +489,8 @@
 
   // figure
   set figure(
-      numbering: it => numbering("1.1", counter(heading).get().first(), it)
-    )
-  show figure: it => {
-    set block(breakable: true)
-    it
-  }
-  show figure.where(
-    kind: table
-  ): it => {
-    set figure.caption(position: top)
-    it
-  }
-  set figure.caption(separator: " ")
-  set table(align: center + horizon)
-  set table(stroke: none)
+    numbering: it => numbering("1.1", counter(heading).get().first(), it)
+  )
   show table: it => {
     if table.hline() in it.children {
       return it
@@ -441,9 +538,11 @@
       numbering: numbly(
       heading-prefix.text + " {1}",
       "{1}.{2}",
+      "{1}.{2}.{3}",
+      "{4:(A)}"
     )
   )
-  show heading: set block( above: 1.69em, below: 1.3em)
+
   show heading.where(level: 1): it => {
     set align(center)
     pagebreak(weak: true)
@@ -463,13 +562,6 @@
   set math.equation(
     numbering: it => numbering("(1.1)", counter(heading).get().first(), it)
   )
-  show math.equation.where(block: false): math.display
-
-  // other
-  set list(indent: 1em)
-  set enum(full: true, indent: 1em)
-  set underline(offset: .15em, stroke: .05em, evade: false)
-  show link: set text(fill: rgb(127, 0, 0))
 
   // body content
   pagebreak(weak: true)
@@ -491,7 +583,10 @@
 
   bibliography(
     title: [References],
-    style: "american-physics-society",
+    // style: "american-physics-society",
+    style: "american-anthropological-association",
+    // style: "american-sociological-association",
+    // style: "american-psychological-association",
     full: true,
     path
   )
@@ -502,11 +597,28 @@
 #let nice-appendix(it) = {
   set heading(
     numbering: numbly(
-      "Appendix {A}",
-      "{A}.{2}",
+      "{1:A}.",
+      "{1:A}.{2}",
     )
   )
   counter(heading).update(0)
+
+  set figure(
+    numbering: it => numbering("A.1", counter(heading).get().first(), it)
+  )
+  set math.equation(
+    numbering: it => numbering("(A.1)", counter(heading).get().first(), it)
+  )
+
+  show heading.where(level: 1): it => {
+    pagebreak(weak: true)
+
+    counter(math.equation).update(0)
+    counter(figure.where(kind: image)).update(0)
+    counter(figure.where(kind: table)).update(0)
+
+    it
+  }
 
   pagebreak(weak: true)
 
@@ -573,6 +685,28 @@
     date: date,
     cover-image: cover-image
   )
+
+  // global style settings
+  set footnote(numbering: "[1]")
+  show heading: set block( above: 1.69em, below: 1.3em)
+  set list(indent: 1em)
+  set enum(full: true, indent: 1em)
+  set underline(offset: .15em, stroke: .05em, evade: false)
+  show link: set text(fill: rgb(127, 0, 0))
+  show math.equation.where(block: false): math.display
+  set figure.caption(separator: " ")
+  set table(align: center + horizon)
+  set table(stroke: none)
+  show figure: it => {
+    set block(breakable: true)
+    it
+  }
+  show figure.where(
+    kind: table
+  ): it => {
+    set figure.caption(position: top)
+    it
+  }
 
   // paragraph
   set par(
