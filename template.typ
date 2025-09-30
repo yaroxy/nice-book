@@ -1,6 +1,12 @@
 // #import "template.typ": nice-doc
 // #import "template.typ": definition, theorem, lemma, corollary, postulate, proposition
-
+// #import "template.typ": important, summary, question, error
+// 定义（Definition）
+// 定理（Theorem）
+// 引理（Lemma）
+// 推论（Corollary）
+// 公设 / 公理（Postulate / Axiom）
+// 命题（Proposition）
 
 // Font
 #let font-size = (
@@ -191,6 +197,7 @@
       dx: 2em,
       dy: 0.8em,
       block(
+        breakable: true,
         stroke: none,
         fill: main-color.lighten(10%),
         inset: 0.3em,
@@ -223,46 +230,52 @@
   it
 )
 #let theorem(number: true, title, it) = math-block-api(
-  main-color: color-themes.second,
+  main-color: color-select("blue").second,
   kind: "Theorem",
   number: number,
-  title,
+  title: title,
   it,
 )
 #let lemma(number: true, title, it) = math-block-api(
-  main-color: color-themes.second,
+  main-color: color-select("blue").second,
   kind: "Lemma",
   number: number,
-  title,
+  title: title,
   it,
 )
 #let corollary(number: true, title, it) = math-block-api(
-  main-color: color-themes.second,
+  main-color: color-select("blue").second,
   kind: "Corollary",
   number: number,
-  title,
+  title: title,
   it,
 )
 #let axiom(number: true, title, it) = math-block-api(
-  main-color: color-themes.second,
+  main-color: color-select("blue").second,
   kind: "Axiom",
   number: number,
-  title,
+  title: title,
   it,
 )
 #let postulate(number: true, title, it) = math-block-api(
-  main-color: color-themes.second,
+  main-color: color-select("blue").second,
   kind: "Postulate",
   number: number,
-  title,
+  title: title,
   it,
 )
 #let proposition(number: true, title, it) = math-block-api(
-  main-color: color-themes.third,
+  main-color: color-select("blue").third,
   kind: "Proposition",
   number: number,
-  title,
+  title: title,
   it,
+)
+
+#let nnmath(it) = math.equation(
+  block: true,
+  numbering: none,
+  it
 )
 
 // block
@@ -272,7 +285,7 @@
   it
 ) = {
   block(
-    fill: block-color.at(kind).body,
+    fill: block-color.at(kind).body.lighten(40%),
     inset: 1em,
     radius: 4pt,
     width: 100%,
@@ -396,11 +409,13 @@
 
   pagebreak(weak: true)
 
+  // counter(page).update(0)
+
   align(center)[
     #heading(
       level: 1,
       numbering: none,
-      outlined: true
+      outlined: false
     )[Preface]
   ]
 
@@ -409,47 +424,51 @@
   pagebreak(weak: true)
 }
 
-
-// #let is-counter-zero(kind) = context {
-//   let counter-num = counter(kind).final().last()
-
-//   if counter-num >= 1 {
-//     return false
-//   }else{
-//     return true
-//   }
-// }
 #let nice-outline(
   con-depth: 2,
   color-theme: "blue"
 ) = {
+  
+  // footnote
+  set footnote.entry(
+    separator: ""
+  )
+  show footnote: none
+  show footnote.entry: hide
 
   counter(page).update(1)
   set page(numbering: "I")
 
   show outline.entry.where(level: 1): it => {
     set block(above: 1.2em)
-    strong(it)
+    it
     // it
   }
   set outline.entry(fill: repeat(" . "))
 
-  align(center)[
-    #heading(
-      numbering: none,
-      bookmarked: true,
-      outlined: false
-    )[Contents]
-  ]
+  // content {}
+  context if counter("heading").at(<end>).at(0) > 0 {
+    show outline.entry.where(level: 1): it => {
+      strong(it)
+    }
 
-  outline(
-    title: none,
-    indent: 1.8em,
-    depth: con-depth
-  )
-  pagebreak(weak: true)
+    align(center)[
+      #heading(
+        numbering: none,
+        bookmarked: true,
+        outlined: false
+      )[Contents]
+    ]
 
-  // if is-counter-zero([#figure.where(kind: image)]) == false {
+    outline(
+      title: none,
+      indent: 1.8em,
+      depth: con-depth
+    )
+    pagebreak(weak: true)
+  }
+
+  context if counter("image").at(<end>).at(0) > 0 {
     align(center)[
       #heading(
         numbering: none,
@@ -462,9 +481,9 @@
       target: figure.where(kind: image)
     )
     pagebreak(weak: true)
-  // }
+  }
 
-  // if is-counter-zero[#figure.where(kind: table)] == false {
+  context if counter("table").at(<end>).at(0) > 0 {
     align(center)[
       #heading(
         numbering: none,
@@ -477,7 +496,7 @@
       target: figure.where(kind: table)
     )
     pagebreak(weak: true)
-  // }
+  }
 
 }
 
@@ -486,6 +505,8 @@
   heading-prefix: [Chapter], //Section, Subject
   it
 ) = {
+  let _header-1 = state("header-1", "")
+  let _header-2 = state("header-2", "")
 
   // figure
   set figure(
@@ -539,14 +560,14 @@
       heading-prefix.text + " {1}",
       "{1}.{2}",
       "{1}.{2}.{3}",
-      "{4:(A)}"
+      "{4:I.}",
+      "{5:(1)}"
     )
   )
 
   show heading.where(level: 1): it => {
     set align(center)
-    pagebreak(weak: true)
-
+    
     counter(math.equation).update(0)
     counter(figure.where(kind: image)).update(0)
     counter(figure.where(kind: table)).update(0)
@@ -555,8 +576,26 @@
       counter(kind).update(0)
     }
 
+    _header-1.update(it)
+    _header-2.update("")
+
+    pagebreak(weak: true)
+
     it
+
+    // set page(
+    //   header: [
+    //     #set text(8pt)
+    //     #smallcaps[Typst Academy]
+    //     #h(1fr) _Exercise Sheet 3_
+    //   ],
+    // )
   }
+  show heading.where(level: 2): it => {
+    _header-2.update(it)
+
+    it
+  } 
 
   // math
   set math.equation(
@@ -567,7 +606,20 @@
   pagebreak(weak: true)
 
   counter(page).update(1)
-  set page(numbering: "1")
+  // set page(numbering: "1")
+  set page(
+    numbering: "1",
+    header: context {
+      // align(right, _header-1.get())
+      if calc.odd(counter(page).get().first()) {
+        align(right, _header-1.get())
+      } else {
+        align(left, _header-2.get())
+      }
+      
+      line(length: 100%)
+    }
+  )
 
   it
 
@@ -587,7 +639,7 @@
     style: "american-anthropological-association",
     // style: "american-sociological-association",
     // style: "american-psychological-association",
-    full: true,
+    // full: true,
     path
   )
   pagebreak(weak: true)
@@ -599,6 +651,7 @@
     numbering: numbly(
       "{1:A}.",
       "{1:A}.{2}",
+      "{3:I}",
     )
   )
   counter(heading).update(0)
@@ -664,10 +717,16 @@
   margin: (x: 20mm, y: 25.4mm),
   it
 ) = {
+
   let color-themes = color-select(color-theme)
 
   // page
-  set page(paper: paper, margin: margin)
+  set page(
+    paper: paper, 
+    margin: margin,
+    // fill: rgb("CCE8CF")
+    fill: rgb("fdf6e3")
+  )
 
   // text
   set text(
@@ -687,6 +746,8 @@
   )
 
   // global style settings
+  set quote(block: true)
+  set smartquote(enabled: false)
   set footnote(numbering: "[1]")
   show heading: set block( above: 1.69em, below: 1.3em)
   set list(indent: 1em)
@@ -694,6 +755,7 @@
   set underline(offset: .15em, stroke: .05em, evade: false)
   show link: set text(fill: rgb(127, 0, 0))
   show math.equation.where(block: false): math.display
+  set math.vec(delim: "[")
   set figure.caption(separator: " ")
   set table(align: center + horizon)
   set table(stroke: none)
@@ -705,6 +767,21 @@
     kind: table
   ): it => {
     set figure.caption(position: top)
+    it
+  }
+  show table: it => {
+    counter("table").step() // create table of contents
+    it
+  }
+  show image: it => {
+    counter("image").step() // create table of contents
+    it
+  }
+  show heading: it => {
+    counter("heading").step() // create table of contents
+    if it.level == 1 {
+      counter(footnote).update(0)
+    }
     it
   }
 
@@ -745,6 +822,13 @@
     nice-epilogue()[#epilogue]
   }
 
+  pagebreak(weak: true)
+
+  set align(center + horizon)
+
+  text(size: font-size.YiHao)[
+    The End <end>
+  ]
 }
 
 
