@@ -1,14 +1,20 @@
-// #import "template.typ": nice-doc
-// #import "template.typ": definition, theorem, lemma, corollary, postulate, proposition
-// #import "template.typ": important, summary, question, error
-// 定义（Definition）
-// 定理（Theorem）
-// 引理（Lemma）
-// 推论（Corollary）
-// 公设 / 公理（Postulate / Axiom）
-// 命题（Proposition）
+// #import "template.typ": nice-doc, yaroxy, callout, math-callout, math-callout-kind
 
-// Font
+
+// predefined author information
+#let yaroxy = (
+  (
+    name: [Atlas Roxy Sun],
+    bs-university: [Harbin Institute of Technology],
+    ms-university: [University of Science and Technology of China],
+    edu-email: [yaroxy\@mail.ustc.edu.cn],
+    google-email: [atlasroxysun\@gmail.com],
+    outlook-email: [atlasroxysun\@outlook.com],
+    github: [#link("https://github.com/yaroxy")[yaroxy\@github]]
+  )
+)
+
+// predefined font size
 #let font-size = (
   ChuHao: 42pt,
   XiaoChu: 36pt,
@@ -29,102 +35,72 @@
   XiaoQi: 5pt
 )
 
+// predefined font style
 #let font-style = (
-  Song: ("Times New Roman", "SimSun"),
-  Hei: ("Calibri", "SimHei"),
-  Mono: ("Consolas", "SimSun"),
-  Kai: ("Times New Roman", "KaiTi"),
-  FangSong: ("Times New Roman", "KaiTi"),
-  Math: ("New Computer Modern Math", "KaiTi"),
+  Code: ("JetBrains Mono", "Noto Serif CJK SC"),
   Book: (
-    (name: "Cambria", covers: "latin-in-cjk"),
-    "Noto Serif CJK SC"
+    (name: "Minion Pro", covers: "latin-in-cjk"),
+    (name: "Noto Serif CJK SC"),
+    // (name: "Noto Serif SC"),
   )
 )
 
-// Color
-#let book-color = (
-  blue: (
-    structure: rgb(60, 113, 183),
-    main: rgb(0, 166, 82),
-    second: rgb(255, 134, 24),
-    third: rgb(0, 174, 247),
-  ),
-  green: (
-    structure: rgb(0, 120, 2),
-    main: rgb(0, 120, 2),
-    second: rgb(230, 90, 7),
-    third: rgb(0, 160, 152),
-  ),
-  cyan: (
-    structure: rgb(31, 186, 190),
-    main: rgb(59, 180, 5),
-    second: rgb(175, 153, 8),
-    third: rgb(244, 105, 102),
-  ),
-  gray: (
-    structure: rgb(150, 150, 150),
-    main: rgb(150, 150, 150),
-    second: rgb(150, 150, 150),
-    third: rgb(150, 150, 150),
-  ),
-  black: (
-    structure: rgb(0, 0, 0),
-    main: rgb(0, 0, 0),
-    second: rgb(0, 0, 0),
-    third: rgb(0, 0, 0),
-  ),
+// reference: photokit.com
+#let callout-color = (
+  spanish-carmine: rgb(209,0,71),
+  regalia: rgb(82,45,128),
+  carrot: rgb(253,111,59),
+  marker-blue: rgb(0,134,154),
 )
 
-#let color-select(color-theme) = {
-  if type(color-theme) == str {
-    assert(
-      book-color.keys().any(it => it == color-theme),
-      message: "Please enter one of \"blue\", \"green\", \"cyan\", \"gray\", or \"black\" as the color theme. "
-        + "\""
-        + color-theme
-        + "\""
-        + " is not among them.",
+// reference: articulate-coderscompass
+/// callout function to create a styled note box.
+/// It takes a title, an icon, a color, and the body content. Only
+/// the body is required, the rest are optional.
+/// -> content
+#let callout(
+  title: none,             // The title of the callout box. Optional.
+  color: callout-color.marker-blue, // The color of the callout box. Optional, defaults to Coders' Compass accent blue.
+  par-indent: 0em,             // The indent of the callout box. Optional, defaults to 0em.
+  list-indent: 0em,            // The indent of the list in the callout box. Optional, defaults to 0em.
+  body                     // The body content of the callout box. This is required.
+) = {
+  block(
+    width: 100%,
+    fill: color.lighten(90%),
+    stroke: (left: 3pt + color),
+    inset: 1em,
+    radius: 2pt,
+    breakable: true,
+  )[
+    #set par(
+      first-line-indent: 0em,
     )
-    return book-color.at(color-theme)
-  } else if type(color-theme) == dictionary {
-    assert(
-      color-theme.keys() == book-color.blue.keys(),
-      message: "Custom color theme failed. The dictionary keys must be exactly: structure, main, second, third.",
+
+    #if title != none {
+      text(
+        weight: "semibold",
+        fill: color.darken(25%),
+        size: 1em,
+      )[#title]
+      
+      // v(0.3em)
+    }
+
+    #set par(
+      first-line-indent: (
+        amount: par-indent,
+        all: true,
+      ),
     )
-    assert(
-      color-theme.values().all(it => type(it) == color),
-      message: "Custom color theme failed. The dictionary values must all be of type color.",
-    )
-    color-theme.keys()
-  } else {
-    assert(false, message: "Please enter a color theme name or provide a custom color theme.")
-  }
+    #set enum(indent: list-indent)
+    #set list(indent: list-indent)
+
+    #body
+  ]
 }
 
-#let block-color = (
-  important: (
-    title: rgb("#01bebb"),
-    body: rgb("#e5f8f8")
-  ),
-  summary: (
-    title: rgb("#c357ee"),
-    body: rgb("#ebdef0")
-  ),
-  question: (
-    title: rgb("#ee861f"),
-    body: rgb("#fdf1e5")
-  ),
-  error: (
-    title: rgb("#e93147"),
-    body: rgb("#fdeaec")
-  )
-)
-
-
-/**
- * numbly
-*/
+// reference: numbly
 #let numbly(..arr, default: "1.") = (..nums) => {
   let arr = arr.pos()
   nums = nums.pos()
@@ -157,208 +133,65 @@
   )
 }
 
-
-// math block
-#let math-block-class = (
-  "Definition",
-  "Theorem",
-  "Lemma",
-  "Corollary",
-  "Axiom",
-  "Postulate",
-  "Proposition"
+#let math-callout-kind = (
+  definition: (
+    name: "Definition",
+    color: callout-color.spanish-carmine,
+  ),
+  theorem: (
+    name: "Theorem",
+    color: callout-color.regalia,
+  ),
+  lemma: (
+    name: "Lemma",
+    color: callout-color.carrot,
+  ),
+  corollary: (
+    name: "Corollary",
+    color: callout-color.marker-blue,
+  ),
+  axiom: (
+    name: "Axiom",
+    color: callout-color.marker-blue,
+  ),
+  postulate: (
+    name: "Postulate",
+    color: callout-color.marker-blue,
+  ),
+  proposition: (
+    name: "Proposition",
+    color: callout-color.marker-blue,
+  ),
+  proof: (
+    name: "Proof",
+    color: callout-color.regalia,
+  ),
 )
-#let math-block-numbering-format(kind) = context {
+
+#let math-callout-numbering-format(kind) = context {
   let heading-num = counter(heading).get().first()
-  let block-num = counter(kind).get().first()
+  let callout-num = counter(kind).get().first()
 
-  numbering("1.1", heading-num, block-num)
+  numbering("1.1", heading-num, callout-num)
 }
 
-#let math-block-frame(
-  main-color, 
-  title, 
-  it
-) = {
-  v(-0.5em)
-  stack(
-    dir: btt,
-    rect(
-      width: 100%,
-      radius: 3pt,
-      inset: 1.2em,
-      stroke: main-color,
-      fill: main-color.lighten(90%),
-      {
-        it
-      },
-    ),
-    move(
-      dx: 2em,
-      dy: 0.8em,
-      block(
-        breakable: true,
-        stroke: none,
-        fill: main-color.lighten(10%),
-        inset: 0.3em,
-        outset: (x: 0.8em),
-        text(fill: white, weight: "bold", bottom-edge: "descender")[#title],
-      ),
-    ),
-  )
-}
-
-#let math-block-api(
-  main-color: rgb(0, 0, 0), 
-  kind: "Math",
-  number: true, 
+#let math-callout(
+  kind: math-callout-kind.definition,
+  number: true,
   title: [],
   it
 ) = {
-  if number {counter(kind).step()}
+  if number {counter(kind.name).step()}
 
-  let name = emph(kind)+ " " + if number {math-block-numbering-format(kind)} + " " + title
+  let name = emph[#kind.name]+ h(0.5em) + emph[#if number {math-callout-numbering-format(kind.name)}] + h(0.5em) + title
   
-  math-block-frame(main-color, name, it)
+  callout(color: kind.color, title: name, par-indent: 2em, it)
 }
-
-#let definition(number: true, title, it) = math-block-api(
-  main-color: color-select("blue").main,
-  kind: "Definition",
-  number: number,
-  title: title,
-  it
-)
-#let theorem(number: true, title, it) = math-block-api(
-  main-color: color-select("blue").second,
-  kind: "Theorem",
-  number: number,
-  title: title,
-  it,
-)
-#let lemma(number: true, title, it) = math-block-api(
-  main-color: color-select("blue").second,
-  kind: "Lemma",
-  number: number,
-  title: title,
-  it,
-)
-#let corollary(number: true, title, it) = math-block-api(
-  main-color: color-select("blue").second,
-  kind: "Corollary",
-  number: number,
-  title: title,
-  it,
-)
-#let axiom(number: true, title, it) = math-block-api(
-  main-color: color-select("blue").second,
-  kind: "Axiom",
-  number: number,
-  title: title,
-  it,
-)
-#let postulate(number: true, title, it) = math-block-api(
-  main-color: color-select("blue").second,
-  kind: "Postulate",
-  number: number,
-  title: title,
-  it,
-)
-#let proposition(number: true, title, it) = math-block-api(
-  main-color: color-select("blue").third,
-  kind: "Proposition",
-  number: number,
-  title: title,
-  it,
-)
-
-#let nnmath(it) = math.equation(
-  block: true,
-  numbering: none,
-  it
-)
-
-// block
-#let nice-block-api(
-  kind: "regular",
-  title: none,
-  it
-) = {
-  block(
-    fill: block-color.at(kind).body.lighten(40%),
-    inset: 1em,
-    radius: 4pt,
-    width: 100%,
-    breakable: true
-  )[
-    #set par(
-      first-line-indent: 0em
-    )
-
-    #if title != none{
-      smallcaps[#text(
-        fill: block-color.at(kind).title,
-        size: font-size.SiHao
-      )[#title]]
-    }else{
-      smallcaps[#text(
-        fill: block-color.at(kind).title,
-        size: font-size.SiHao
-      )[#kind]]
-    }
-
-    #set par(
-      first-line-indent: (
-        amount: 1em,
-        all: true,
-      ),
-    )
-    
-    #it
-  ]
-}
-
-#let important(
-  title,
-  it
-) = nice-block-api(
-  kind: "important",
-  title: if title == [] {none} else {title},
-  it
-)
-
-#let summary(
-  title,
-  it
-) = nice-block-api(
-  kind: "summary",
-  title: if title == [] {none} else {title},
-  it
-)
-
-#let question(
-  title,
-  it
-) = nice-block-api(
-  kind: "question",
-  title: if title == [] {none} else {title},
-  it
-)
-
-#let error(
-  title,
-  it
-) = nice-block-api(
-  kind: "error",
-  title: if title == [] {none} else {title},
-  it
-)
-
 
 // book
 #let nice-cover(
-  title: [],
-  subtitle: [],
+  main-title: [],
+  sub-title: [],
   authors: (),
   date: datetime.today(),
   cover-image: none
@@ -382,9 +215,12 @@
   }
 
   set align(center)
-  text(font: font-style.Book, size: font-size.YiHao)[#title]
-  v(0em)
-  text(font: font-style.Book, size: font-size.ErHao)[#subtitle]
+  text(font: font-style.Book, size: font-size.YiHao)[#main-title]
+  v(0.5em)
+  h(1em)
+  text(font: font-style.Book, size: font-size.ErHao, style: "italic")[#sub-title]
+  h(1em)
+  v(0.5em)
 
   let count = authors.len()
   let ncols = calc.min(count, 2)
@@ -426,10 +262,9 @@
 
 #let nice-outline(
   con-depth: 2,
-  color-theme: "blue"
 ) = {
   
-  // footnote
+  // remove footnote from outline
   set footnote.entry(
     separator: ""
   )
@@ -442,16 +277,14 @@
   show outline.entry.where(level: 1): it => {
     set block(above: 1.2em)
     it
-    // it
   }
   set outline.entry(fill: repeat(" . "))
 
-  // content {}
+  // contents
   context if counter("heading").at(<end>).at(0) > 0 {
     show outline.entry.where(level: 1): it => {
       strong(it)
     }
-
     align(center)[
       #heading(
         numbering: none,
@@ -459,7 +292,6 @@
         outlined: false
       )[Contents]
     ]
-
     outline(
       title: none,
       indent: 1.8em,
@@ -468,6 +300,7 @@
     pagebreak(weak: true)
   }
 
+  // list of figures
   context if counter("image").at(<end>).at(0) > 0 {
     align(center)[
       #heading(
@@ -497,16 +330,14 @@
     )
     pagebreak(weak: true)
   }
-
 }
 
 
 #let nice-body(
-  heading-prefix: [Chapter], //Section, Subject
+  section-prefix: none, //none, Chapter, Section, Subject
   it
 ) = {
-  let _header-1 = state("header-1", "")
-  let _header-2 = state("header-2", "")
+  let section-name = state("section-name", "")
 
   // figure
   set figure(
@@ -529,39 +360,16 @@
     return table(..meta, table.hline(),..new_children,table.hline())
   }
 
-  // code
-  show raw.where(block: true): it => {
-    set par(justify: false)
-    block(
-      fill: luma(245),
-      inset: (top: 4pt, bottom: 4pt),
-      radius: 4pt,
-      width: 100%,
-      breakable: true,
-      stack(
-        ..it.lines.map(raw_line => block(
-          inset: 3pt,
-          width: 100%,
-          grid(
-            columns: (1em + 4pt, 1fr),
-            align: (right + horizon, left),
-            column-gutter: 0.7em,
-            row-gutter: 0.6em,
-            text(gray, [#raw_line.number]), raw_line,
-          ),
-        )),
-      ),
-    )
-  }
-
   // heading numbering
   set heading(
       numbering: numbly(
-      heading-prefix.text + " {1}",
+      section-prefix.text + " {1}",
       "{1}.{2}",
       "{1}.{2}.{3}",
       "{4:I.}",
-      "{5:(1)}"
+      "{5:(1)}",
+      "({5:1.}{6:1})",
+      "({5:1.}{6:1.}{7:1})",
     )
   )
 
@@ -572,30 +380,16 @@
     counter(figure.where(kind: image)).update(0)
     counter(figure.where(kind: table)).update(0)
 
-    for kind in math-block-class {
-      counter(kind).update(0)
+    for kind in math-callout-kind.keys() {
+      counter(math-callout-kind.at(kind).name).update(0)
     }
 
-    _header-1.update(it)
-    _header-2.update("")
+    section-name.update(it)
 
     pagebreak(weak: true)
 
     it
-
-    // set page(
-    //   header: [
-    //     #set text(8pt)
-    //     #smallcaps[Typst Academy]
-    //     #h(1fr) _Exercise Sheet 3_
-    //   ],
-    // )
   }
-  show heading.where(level: 2): it => {
-    _header-2.update(it)
-
-    it
-  } 
 
   // math
   set math.equation(
@@ -610,36 +404,32 @@
   set page(
     numbering: "1",
     header: context {
-      // align(right, _header-1.get())
       if calc.odd(counter(page).get().first()) {
-        align(right, _header-1.get())
+        align(right, document.title)
       } else {
-        align(left, _header-2.get())
+        align(left, section-name.get())
       }
-      
-      line(length: 100%)
+      // line(length: 100%)
     }
   )
 
   it
 
   pagebreak(weak: true)
-
 }
 
 
 #let nice-reference(
-  path: none
+  path: none,
+  style: "american-psychological-association",
+  full: true
 ) = {
   pagebreak(weak: true)
 
   bibliography(
     title: [References],
-    // style: "american-physics-society",
-    style: "american-anthropological-association",
-    // style: "american-sociological-association",
-    // style: "american-psychological-association",
-    // full: true,
+    style: style,
+    full: full,
     path
   )
   pagebreak(weak: true)
@@ -700,61 +490,83 @@
 
 
 #let nice-doc(
-  title: [],
-  subtitle: [],
-  authors: (),
-  date: datetime.today(),
-  paper: "us-letter",
-  preface: none,
-  epilogue: none,
   appendix: none,
-  reference: none,
+  authors: (),
   con-depth: 2,
   cover-image: none,
-  numbering-style: none,
-  color-theme: "blue",
-  heading-prefix: [Chapter], //Section, Subject
-  margin: (x: 20mm, y: 25.4mm),
+  date: datetime.today(),
+  epilogue: none,
+  main-title: [],
+  margin: (x: 20mm, y: 20mm),
+  lang: "en",
+  page-fill: none,
+  paper: "us-letter",
+  preface: none,
+  reference: none,
+  region: "en",
+  section-prefix: [Chapter], //Section, Subject
+  smart-quote: true,
+  sub-title: [],
+  text-fill: none,
   it
 ) = {
 
-  let color-themes = color-select(color-theme)
+  // set metadate
+  set document(
+    title: main-title,
+    date: date,
+    author: "Atlas Roxy Sun",
+  )
 
   // page
   set page(
     paper: paper, 
     margin: margin,
+    fill: if page-fill == none {rgb(255, 255, 255)} else {page-fill},
     // fill: rgb("CCE8CF")
-    fill: rgb("fdf6e3")
+    // fill: rgb("000c18"),
+    // fill: rgb("fdf6e3")
+    // fill: rgb("000000")
   )
 
   // text
   set text(
     font: font-style.Book,
-    size: font-size.XiaoSi,
-    lang: "en",
-    region: "cn"
+    size: font-size.WuHao,
+    lang: lang,
+    region: region,
+    fill: if text-fill == none {rgb(0, 0, 0)} else {text-fill},
+    // fill: rgb("6283c4")
   )
 
   // cover
   nice-cover(
-    title: title,
-    subtitle: subtitle,
+    main-title: main-title,
+    sub-title: sub-title,
     authors: authors,
     date: date,
     cover-image: cover-image
   )
 
+  set page(
+    background: rotate(
+      24deg,
+      text(18pt, fill: rgb("FFCBC4"))[
+        *ATLAS ROXY SUN*
+      ]
+    )
+  )
+
   // global style settings
   set quote(block: true)
-  set smartquote(enabled: false)
+  set smartquote(enabled: smart-quote)
   set footnote(numbering: "[1]")
-  show heading: set block( above: 1.69em, below: 1.3em)
-  set list(indent: 1em)
-  set enum(full: true, indent: 1em)
+  show heading: set block( above: 1em, below: 1em)
+  set list(indent: 0em) // 1.15em
+  set enum(full: true, indent: 0em)
   set underline(offset: .15em, stroke: .05em, evade: false)
   show link: set text(fill: rgb(127, 0, 0))
-  show math.equation.where(block: false): math.display
+  // show math.equation.where(block: false): math.display
   set math.vec(delim: "[")
   set figure.caption(separator: " ")
   set table(align: center + horizon)
@@ -785,6 +597,36 @@
     it
   }
 
+  // code
+  show raw.where(block: false): it => {
+    text(fill: rgb(127, 0, 0), font: font-style.Code)[#it]
+  }
+  show raw.where(block: true): it => {
+    set par(justify: false)
+    set text(font: font-style.Code)
+
+    block(
+      fill: luma(245),
+      inset: (top: 4pt, bottom: 4pt),
+      radius: 4pt,
+      width: 100%,
+      breakable: true,
+      stack(
+        ..it.lines.map(raw_line => block(
+          inset: 3pt,
+          width: 100%,
+          grid(
+            columns: (1em + 4pt, 1fr),
+            align: (right + horizon, left),
+            column-gutter: 0.7em,
+            row-gutter: 0.6em,
+            text(gray, [#raw_line.number]), raw_line,
+          ),
+        )),
+      ),
+    )
+  }
+
   // paragraph
   set par(
     first-line-indent: (
@@ -797,17 +639,19 @@
     linebreaks: "optimized"
   )
 
+  // preface
   if preface != none {
     nice-preface()[#preface]
   }
 
+  // outline
   nice-outline(
-    color-theme: color-theme,
     con-depth: con-depth
   )
 
+  // body
   nice-body(
-    heading-prefix: heading-prefix
+    section-prefix: section-prefix
   )[#it]
 
   if reference != none {
@@ -831,4 +675,15 @@
   ]
 }
 
+// no numbering equation
+#let nnmath(it) = math.equation(block: true, numbering: none, it)
 
+// color box
+#let cbox(color: callout-color.spanish-carmine, it) = {
+  box(
+    fill: color,
+    inset: (x: 3pt, y: 0pt),
+    outset: (y: 3pt),
+    radius: 2pt,
+  )[#it]
+}
